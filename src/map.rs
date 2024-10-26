@@ -1,5 +1,7 @@
 //! Map functionality.
 
+use alloc::vec::Vec;
+
 use super::{Relation, Variable};
 
 pub(crate) fn map_into<T1: Ord, T2: Ord>(
