@@ -1,7 +1,13 @@
-use std::cell::RefCell;
-use std::io::Write;
-use std::iter::FromIterator;
-use std::rc::Rc;
+use alloc::{
+    rc::Rc,
+    string::{String, ToString as _},
+    vec::Vec,
+};
+use core::cell::RefCell;
+use core::iter::FromIterator;
+
+#[cfg(feature = "std")]
+use crate::debug::Write;
 
 use crate::{
     join::{self, JoinInput},
@@ -16,7 +22,12 @@ pub(crate) trait VariableTrait {
     fn changed(&mut self) -> bool;
 
     /// Dumps statistics about the variable internals, for debug and profiling purposes.
+    #[cfg(feature = "std")]
     fn dump_stats(&self, round: u32, w: &mut dyn Write);
+
+    /// Dumps statistics about the variable internals, for debug and profiling purposes.
+    #[cfg(not(feature = "std"))]
+    fn dump_stats(&self, round: u32, w: &mut dyn crate::debug::Write);
 }
 
 /// An monotonically increasing set of `Tuple`s.
@@ -338,7 +349,7 @@ impl<Tuple: Ord> VariableTrait for Variable<Tuple> {
         // 1. Merge self.recent into self.stable.
         if !self.recent.borrow().is_empty() {
             let mut recent =
-                ::std::mem::replace(&mut (*self.recent.borrow_mut()), Vec::new().into());
+                ::core::mem::replace(&mut (*self.recent.borrow_mut()), Vec::new().into());
             while self
                 .stable
                 .borrow()
@@ -391,6 +402,7 @@ impl<Tuple: Ord> VariableTrait for Variable<Tuple> {
         !self.recent.borrow().is_empty()
     }
 
+    #[cfg(feature = "std")]
     fn dump_stats(&self, round: u32, w: &mut dyn Write) {
         let mut stable_count = 0;
         for tuple in self.stable.borrow().iter() {
@@ -411,6 +423,15 @@ impl<Tuple: Ord> VariableTrait for Variable<Tuple> {
                 self.name, round, e
             )
         });
+    }
+
+    #[cfg(not(feature = "std"))]
+    fn dump_stats(&self, round: u32, w: &mut dyn crate::debug::Write) {
+        let mut stable_count = 0;
+        for tuple in self.stable.borrow().iter() {
+            stable_count += tuple.len();
+        }
+        w.write_stats(&self.name, round, stable_count, self.recent.borrow().len());
     }
 }
 

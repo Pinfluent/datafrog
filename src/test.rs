@@ -3,6 +3,8 @@
 use crate::Iteration;
 use crate::Relation;
 use crate::RelationLeaper;
+use alloc::vec;
+use alloc::vec::Vec;
 use proptest::prelude::*;
 use proptest::{proptest, proptest_helper};
 
@@ -208,23 +210,23 @@ fn passthrough_leaper() {
                 crate::passthrough(), // Without this, the test would fail at runtime.
                 crate::PrefixFilter::from(|&(i, _)| i <= 20),
             ),
-            |&(i, j), ()| (2*i, 2*j),
+            |&(i, j), ()| (2 * i, 2 * j),
         );
     }
 
     let variable = variable.complete();
 
     let mut expected: Vec<_> = (0..10).map(|i| (i, i)).collect();
-    expected.extend((10..20).filter_map(|i| (i%2 == 0).then(|| (i, i))));
-    expected.extend((20..=40).filter_map(|i| (i%4 == 0).then(|| (i, i))));
+    expected.extend((10..20).filter_map(|i| (i % 2 == 0).then(|| (i, i))));
+    expected.extend((20..=40).filter_map(|i| (i % 4 == 0).then(|| (i, i))));
     assert_eq!(&*variable, &expected);
 }
 
 #[test]
 fn relation_from_antijoin() {
-    let lhs: Relation<_> = (0 .. 10).map(|x| (x, x)).collect();
-    let rhs: Relation<_> = (0 .. 10).filter(|x| x % 2 == 0).collect();
-    let expected: Relation<_> = (0 .. 10).filter(|x| x % 2 == 1).map(|x| (x, x)).collect();
+    let lhs: Relation<_> = (0..10).map(|x| (x, x)).collect();
+    let rhs: Relation<_> = (0..10).filter(|x| x % 2 == 0).collect();
+    let expected: Relation<_> = (0..10).filter(|x| x % 2 == 1).map(|x| (x, x)).collect();
 
     let result = Relation::from_antijoin(&lhs, &rhs, |a, b| (*a, *b));
 

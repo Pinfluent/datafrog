@@ -1,8 +1,9 @@
-use std::iter::FromIterator;
+use core::iter::FromIterator;
+
+use alloc::vec::Vec;
 
 use crate::{
-    join,
-    merge,
+    join, merge,
     treefrog::{self, Leapers},
 };
 
@@ -106,7 +107,7 @@ impl<'tuple, Tuple: 'tuple + Clone + Ord> FromIterator<&'tuple Tuple> for Relati
     }
 }
 
-impl<Tuple> std::ops::Deref for Relation<Tuple> {
+impl<Tuple> core::ops::Deref for Relation<Tuple> {
     type Target = [Tuple];
     fn deref(&self) -> &Self::Target {
         &self.elements[..]

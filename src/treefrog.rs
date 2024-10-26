@@ -1,6 +1,7 @@
 //! Join functionality.
 
 use super::Relation;
+use alloc::vec::Vec;
 
 /// Performs treefrog leapjoin using a list of leapers.
 pub(crate) fn leapjoin<'leap, Tuple: Ord, Val: Ord + 'leap, Result: Ord>(
@@ -117,6 +118,8 @@ pub trait Leaper<'leap, Tuple, Val> {
 }
 
 pub(crate) mod filters {
+    use alloc::vec::Vec;
+
     use super::Leaper;
     use super::Leapers;
 
@@ -127,7 +130,7 @@ pub(crate) mod filters {
     /// isolation in which case it just acts like a filter on the
     /// input (the "proposed value" will be `()` type).
     pub struct PrefixFilter<Tuple, Func: Fn(&Tuple) -> bool> {
-        phantom: ::std::marker::PhantomData<Tuple>,
+        phantom: ::core::marker::PhantomData<Tuple>,
         predicate: Func,
     }
 
@@ -138,7 +141,7 @@ pub(crate) mod filters {
         /// Creates a new filter based on the prefix
         pub fn from(predicate: Func) -> Self {
             PrefixFilter {
-                phantom: ::std::marker::PhantomData,
+                phantom: ::core::marker::PhantomData,
                 predicate,
             }
         }
@@ -191,13 +194,13 @@ pub(crate) mod filters {
     }
 
     pub struct Passthrough<Tuple> {
-        phantom: ::std::marker::PhantomData<Tuple>,
+        phantom: ::core::marker::PhantomData<Tuple>,
     }
 
     impl<Tuple> Passthrough<Tuple> {
         fn new() -> Self {
             Passthrough {
-                phantom: ::std::marker::PhantomData,
+                phantom: ::core::marker::PhantomData,
             }
         }
     }
@@ -246,7 +249,7 @@ pub(crate) mod filters {
     /// This leaper cannot be used in isolation, it must be combined
     /// with other leapers.
     pub struct ValueFilter<Tuple, Val, Func: Fn(&Tuple, &Val) -> bool> {
-        phantom: ::std::marker::PhantomData<(Tuple, Val)>,
+        phantom: ::core::marker::PhantomData<(Tuple, Val)>,
         predicate: Func,
     }
 
@@ -257,7 +260,7 @@ pub(crate) mod filters {
         /// Creates a new filter based on the prefix
         pub fn from(predicate: Func) -> Self {
             ValueFilter {
-                phantom: ::std::marker::PhantomData,
+                phantom: ::core::marker::PhantomData,
                 predicate,
             }
         }
@@ -362,6 +365,8 @@ impl<Key: Ord, Val: Ord> RelationLeaper<Key, Val> for Relation<(Key, Val)> {
 }
 
 pub(crate) mod extend_with {
+    use alloc::vec::Vec;
+
     use super::{binary_search, Leaper, Leapers, Relation};
     use crate::join::gallop;
 
@@ -378,7 +383,7 @@ pub(crate) mod extend_with {
         end: usize,
         key_func: Func,
         old_key: Option<Key>,
-        phantom: ::std::marker::PhantomData<Tuple>,
+        phantom: ::core::marker::PhantomData<Tuple>,
     }
 
     impl<'leap, Key, Val, Tuple, Func> ExtendWith<'leap, Key, Val, Tuple, Func>
@@ -396,7 +401,7 @@ pub(crate) mod extend_with {
                 end: 0,
                 key_func,
                 old_key: None,
-                phantom: ::std::marker::PhantomData,
+                phantom: ::core::marker::PhantomData,
             }
         }
     }
@@ -459,7 +464,9 @@ pub(crate) mod extend_with {
 }
 
 pub(crate) mod extend_anti {
-    use std::ops::Range;
+    use core::ops::Range;
+
+    use alloc::vec::Vec;
 
     use super::{binary_search, Leaper, Relation};
     use crate::join::gallop;
@@ -475,7 +482,7 @@ pub(crate) mod extend_anti {
         relation: &'leap Relation<(Key, Val)>,
         key_func: Func,
         old_key: Option<(Key, Range<usize>)>,
-        phantom: ::std::marker::PhantomData<Tuple>,
+        phantom: ::core::marker::PhantomData<Tuple>,
     }
 
     impl<'leap, Key, Val, Tuple, Func> ExtendAnti<'leap, Key, Val, Tuple, Func>
@@ -491,7 +498,7 @@ pub(crate) mod extend_anti {
                 relation,
                 key_func,
                 old_key: None,
-                phantom: ::std::marker::PhantomData,
+                phantom: ::core::marker::PhantomData,
             }
         }
     }
@@ -520,7 +527,7 @@ pub(crate) mod extend_anti {
                     let start = binary_search(&self.relation.elements, |x| &x.0 < &key);
                     let slice1 = &self.relation[start..];
                     let slice2 = gallop(slice1, |x| &x.0 <= &key);
-                    let range = start..self.relation.len()-slice2.len();
+                    let range = start..self.relation.len() - slice2.len();
 
                     self.old_key = Some((key, range.clone()));
 
@@ -541,6 +548,8 @@ pub(crate) mod extend_anti {
 
 pub(crate) mod filter_with {
 
+    use alloc::vec::Vec;
+
     use super::{Leaper, Leapers, Relation};
 
     /// Wraps a Relation<Tuple> as a leaper.
@@ -554,7 +563,7 @@ pub(crate) mod filter_with {
         relation: &'leap Relation<(Key, Val)>,
         key_func: Func,
         old_key_val: Option<((Key, Val), bool)>,
-        phantom: ::std::marker::PhantomData<Tuple>,
+        phantom: ::core::marker::PhantomData<Tuple>,
     }
 
     impl<'leap, Key, Val, Tuple, Func> FilterWith<'leap, Key, Val, Tuple, Func>
@@ -570,7 +579,7 @@ pub(crate) mod filter_with {
                 relation,
                 key_func,
                 old_key_val: None,
-                phantom: ::std::marker::PhantomData,
+                phantom: ::core::marker::PhantomData,
             }
         }
     }
@@ -594,7 +603,11 @@ pub(crate) mod filter_with {
 
             let is_present = self.relation.binary_search(&key_val).is_ok();
             self.old_key_val = Some((key_val, is_present));
-            if is_present { usize::MAX } else { 0 }
+            if is_present {
+                usize::MAX
+            } else {
+                0
+            }
         }
         fn propose(&mut self, _prefix: &Tuple, _values: &mut Vec<&'leap Val2>) {
             panic!("FilterWith::propose(): variable apparently unbound.");
@@ -634,6 +647,8 @@ pub(crate) mod filter_with {
 
 pub(crate) mod filter_anti {
 
+    use alloc::vec::Vec;
+
     use super::{Leaper, Leapers, Relation};
 
     /// Wraps a Relation<Tuple> as a leaper.
@@ -647,7 +662,7 @@ pub(crate) mod filter_anti {
         relation: &'leap Relation<(Key, Val)>,
         key_func: Func,
         old_key_val: Option<((Key, Val), bool)>,
-        phantom: ::std::marker::PhantomData<Tuple>,
+        phantom: ::core::marker::PhantomData<Tuple>,
     }
 
     impl<'leap, Key, Val, Tuple, Func> FilterAnti<'leap, Key, Val, Tuple, Func>
@@ -663,7 +678,7 @@ pub(crate) mod filter_anti {
                 relation,
                 key_func,
                 old_key_val: None,
-                phantom: ::std::marker::PhantomData,
+                phantom: ::core::marker::PhantomData,
             }
         }
     }
@@ -687,7 +702,11 @@ pub(crate) mod filter_anti {
 
             let is_present = self.relation.binary_search(&key_val).is_ok();
             self.old_key_val = Some((key_val, is_present));
-            if is_present { 0 } else { usize::MAX }
+            if is_present {
+                0
+            } else {
+                usize::MAX
+            }
         }
         fn propose(&mut self, _prefix: &Tuple, _values: &mut Vec<&'leap Val2>) {
             panic!("FilterAnti::propose(): variable apparently unbound.");
@@ -736,7 +755,7 @@ fn binary_search<T>(vec: &Vec<T>, mut cmp: impl FnMut(&T) -> bool) -> usize {
     // The midpoint calculation we use below is only correct for vectors with less than `isize::MAX`
     // elements. This is always true for vectors of sized types but maybe not for ZSTs? Sorting
     // ZSTs doesn't make much sense, so just forbid it here.
-    assert!(std::mem::size_of::<T>() > 0);
+    assert!(core::mem::size_of::<T>() > 0);
 
     // we maintain the invariant that `lo` many elements of `slice` satisfy `cmp`.
     // `hi` is maintained at the first element we know does not satisfy `cmp`.
