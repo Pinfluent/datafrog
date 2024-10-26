@@ -1,8 +1,10 @@
 //! Join functionality.
 
+use alloc::vec::Vec;
+
 use super::{Relation, Variable};
-use std::cell::Ref;
-use std::ops::Deref;
+use core::cell::Ref;
+use core::ops::Deref;
 
 /// Implements `join`. Note that `input1` must be a variable, but
 /// `input2` can be either a variable or a relation. This is necessary
@@ -104,7 +106,7 @@ fn join_helper<K: Ord, V1, V2>(
     mut result: impl FnMut(&K, &V1, &V2),
 ) {
     while !slice1.is_empty() && !slice2.is_empty() {
-        use std::cmp::Ordering;
+        use core::cmp::Ordering;
 
         // If the keys match produce tuples, else advance the smaller key until they might.
         match slice1[0].0.cmp(&slice2[0].0) {
@@ -205,7 +207,7 @@ impl<'me, Tuple: Ord> JoinInput<'me, (Tuple, ())> for &'me Relation<Tuple> {
     }
 
     fn for_each_stable_set(self, mut f: impl FnMut(&[(Tuple, ())])) {
-        use std::mem;
+        use core::mem;
         assert_eq!(mem::size_of::<(Tuple, ())>(), mem::size_of::<Tuple>());
         assert_eq!(mem::align_of::<(Tuple, ())>(), mem::align_of::<Tuple>());
 
@@ -217,7 +219,7 @@ impl<'me, Tuple: Ord> JoinInput<'me, (Tuple, ())> for &'me Relation<Tuple> {
         let len = elements.len();
 
         let elements: &'me [(Tuple, ())] =
-            unsafe { std::slice::from_raw_parts(elements.as_ptr() as *const _, len) };
+            unsafe { core::slice::from_raw_parts(elements.as_ptr() as *const _, len) };
 
         f(elements)
     }

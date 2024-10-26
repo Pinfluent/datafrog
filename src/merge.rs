@@ -1,6 +1,8 @@
 //! Subroutines for merging sorted lists efficiently.
 
-use std::cmp::Ordering;
+use core::cmp::Ordering;
+
+use alloc::vec::Vec;
 
 /// Merges two sorted lists into a single sorted list, ignoring duplicates.
 pub fn merge_unique<T: Ord>(mut a: Vec<T>, mut b: Vec<T>) -> Vec<T> {
@@ -48,7 +50,7 @@ pub fn merge_unique<T: Ord>(mut a: Vec<T>, mut b: Vec<T>) -> Vec<T> {
             Ordering::Greater => unsafe { push_unchecked(&mut out, next_unchecked(&mut b)) },
             Ordering::Equal => unsafe {
                 push_unchecked(&mut out, next_unchecked(&mut a));
-                std::mem::drop(next_unchecked(&mut b));
+                core::mem::drop(next_unchecked(&mut b));
             },
         }
     }
@@ -82,14 +84,14 @@ pub fn merge_unique<T: Ord>(mut a: Vec<T>, mut b: Vec<T>) -> Vec<T> {
 /// If `vec.len() == vec.cap()`, calling this function is UB.
 unsafe fn push_unchecked<T>(vec: &mut Vec<T>, value: T) {
     let end = vec.as_mut_ptr().add(vec.len());
-    std::ptr::write(end, value);
+    core::ptr::write(end, value);
     vec.set_len(vec.len() + 1);
 }
 
 /// Equivalent to `iter.next().unwrap()` that is UB to call when `iter` is empty.
-unsafe fn next_unchecked<T>(iter: &mut std::vec::IntoIter<T>) -> T {
+unsafe fn next_unchecked<T>(iter: &mut alloc::vec::IntoIter<T>) -> T {
     match iter.next() {
         Some(x) => x,
-        None => std::hint::unreachable_unchecked(),
+        None => core::hint::unreachable_unchecked(),
     }
 }

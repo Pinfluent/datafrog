@@ -10,7 +10,10 @@
 //! vectors again.
 
 #![forbid(missing_docs)]
+#![cfg_attr(not(feature = "std"), no_std)]
+extern crate alloc;
 
+mod debug;
 mod iteration;
 mod join;
 mod map;

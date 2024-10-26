@@ -1,7 +1,11 @@
 [package]
 name = "datafrog"
 version = "2.0.1"
-authors = ["Frank McSherry <fmcsherry@me.com>", "The Rust Project Developers", "Datafrog Developers"]
+authors = [
+    "Frank McSherry <fmcsherry@me.com>",
+    "The Rust Project Developers",
+    "Datafrog Developers",
+]
 license = "Apache-2.0/MIT"
 description = "Lightweight Datalog engine intended to be embedded in other Rust programs"
 readme = "README.md"
@@ -15,3 +19,7 @@ is-it-maintained-open-issues = { repository = "https://github.com/rust-lang-nurs
 
 [dev-dependencies]
 proptest = "0.8.7"
+
+[features]
+default = ["std"]
+std = []

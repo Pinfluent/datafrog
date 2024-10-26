@@ -1,4 +1,5 @@
-use std::io::Write;
+use crate::debug::BoxedWriter;
+use alloc::{boxed::Box, vec::Vec};
 
 use crate::variable::{Variable, VariableTrait};
 
@@ -11,7 +12,7 @@ use crate::variable::{Variable, VariableTrait};
 pub struct Iteration {
     variables: Vec<Box<dyn VariableTrait>>,
     round: u32,
-    debug_stats: Option<Box<dyn Write>>,
+    debug_stats: Option<BoxedWriter>,
 }
 
 impl Iteration {
@@ -31,7 +32,7 @@ impl Iteration {
             }
 
             if let Some(ref mut stats_writer) = self.debug_stats {
-                variable.dump_stats(self.round, stats_writer);
+                variable.dump_stats(self.round, &mut **stats_writer);
             }
         }
         result
@@ -55,11 +56,17 @@ impl Iteration {
 
     /// Set up this Iteration to write debug statistics about each variable,
     /// for each round of the computation.
-    pub fn record_stats_to(&mut self, mut w: Box<dyn Write>) {
-        // print column names header
+    #[cfg(feature = "std")]
+    pub fn record_stats_to(&mut self, mut w: Box<dyn std::io::Write>) {
         writeln!(w, "Variable,Round,Stable count,Recent count")
             .expect("Couldn't write debug stats CSV header");
+        self.debug_stats = Some(w);
+    }
 
+    /// Set up this Iteration to write debug statistics about each variable,
+    /// for each round of the computation.
+    #[cfg(not(feature = "std"))]
+    pub fn record_stats_to(&mut self, w: Box<dyn crate::debug::Write>) {
         self.debug_stats = Some(w);
     }
 }
